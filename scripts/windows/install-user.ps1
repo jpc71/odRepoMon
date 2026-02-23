@@ -1,7 +1,8 @@
 param(
     [string]$SourcePath = "",
     [string]$ConfigPath = "",
-    [switch]$EnableStartup
+    [switch]$EnableStartup,
+    [switch]$Force
 )
 
 Set-StrictMode -Version Latest
@@ -75,6 +76,15 @@ if (-not $ConfigPath) {
 
 if (-not (Test-Path -LiteralPath $installRoot)) {
     New-Item -ItemType Directory -Path $installRoot -Force | Out-Null
+}
+
+$existingInstall = (Test-Path -LiteralPath $venvPython) -or (Test-Path -LiteralPath $launcherPath)
+if ($existingInstall -and (-not $Force)) {
+    $answer = Read-Host "Existing user install detected at $installRoot. Continue and refresh launcher/environment? (y/N)"
+    if ($answer -notin @("y", "Y", "yes", "YES")) {
+        Write-Host "Install cancelled."
+        exit 0
+    }
 }
 
 $pythonCommand = Resolve-PythonCommand

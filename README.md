@@ -42,6 +42,12 @@ Optional startup-on-login install:
 scripts\windows\install-user.cmd -EnableStartup
 ```
 
+Reinstall/refresh existing user install without prompt:
+
+```powershell
+scripts\windows\install-user.cmd -Force
+```
+
 After install, start the tray agent by either:
 
 - Start Menu shortcut `odRepoMon Agent`

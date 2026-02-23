@@ -6,6 +6,11 @@ The tool runs as a background Windows tray agent that can automatically sync you
 
 Perfect for developers who want automated, selective backups of active projects without manually managing what gets synced to OneDrive, Google Drive, or other cloud folders. Run it in dry-run mode first to preview what would be copied, then let it run automatically in the background.
 
+## License
+
+This project is licensed under **GNU GPL v3 or later** (`GPL-3.0-or-later`).
+See [LICENSE](LICENSE) for the full text.
+
 ## Features
 
 - Multiple source directories per job

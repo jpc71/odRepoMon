@@ -306,7 +306,7 @@ class TrayAgent:
             return
 
         root = tk.Tk()
-        root.title("odRepoMon Agent")
+        root.title("odRepoMon Agent - OneDrive Repository Monitor")
         root.geometry("860x600")
 
         self.ui_root = root

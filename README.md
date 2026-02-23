@@ -28,6 +28,31 @@ This installs two commands:
 
 No admin permissions are required. The agent runs in user mode, stores state/log files under your user profile (`~/.odrepomon`), and uses an internal timer for scheduling.
 
+## Windows Easy Install (non-dev users)
+
+Use the bundled installer (no admin required):
+
+1. Double-click [scripts/windows/install-user.cmd](scripts/windows/install-user.cmd)
+2. It installs into `%LOCALAPPDATA%/odRepoMon` (user-space only)
+3. It creates a Start Menu shortcut: `odRepoMon Agent`
+
+Optional startup-on-login install:
+
+```powershell
+scripts\windows\install-user.cmd -EnableStartup
+```
+
+After install, start the tray agent by either:
+
+- Start Menu shortcut `odRepoMon Agent`
+- [scripts/windows/launch-agent.cmd](scripts/windows/launch-agent.cmd)
+
+Uninstall (no admin required):
+
+- Double-click [scripts/windows/uninstall-user.cmd](scripts/windows/uninstall-user.cmd)
+- Or run `scripts\windows\uninstall-user.cmd`
+- Silent uninstall (no prompt): `scripts\windows\uninstall-user.cmd -Force`
+
 ## Quick Start
 
 ```powershell

@@ -1,0 +1,131 @@
+param(
+    [string]$SourcePath = "",
+    [string]$ConfigPath = "",
+    [switch]$EnableStartup
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+function Resolve-PythonCommand {
+    $py = Get-Command py -ErrorAction SilentlyContinue
+    if ($py) {
+        return @("py", "-3")
+    }
+
+    $python = Get-Command python -ErrorAction SilentlyContinue
+    if ($python) {
+        return @($python.Source)
+    }
+
+    throw "Python was not found. Install Python 3.10+ and re-run this installer."
+}
+
+    function Invoke-Python {
+        param(
+            [Parameter(Mandatory = $true)][string[]]$Command,
+            [Parameter(Mandatory = $true)][string[]]$Arguments
+        )
+
+        if ($Command.Length -gt 1) {
+            & $Command[0] $Command[1..($Command.Length - 1)] @Arguments
+            return
+        }
+        & $Command[0] @Arguments
+    }
+
+function New-ShortcutFile {
+    param(
+        [Parameter(Mandatory = $true)][string]$ShortcutPath,
+        [Parameter(Mandatory = $true)][string]$TargetPath,
+        [Parameter(Mandatory = $true)][string]$WorkingDirectory,
+        [string]$IconLocation = ""
+    )
+
+    $shortcutDirectory = Split-Path -Parent $ShortcutPath
+    if (-not (Test-Path -LiteralPath $shortcutDirectory)) {
+        New-Item -ItemType Directory -Path $shortcutDirectory -Force | Out-Null
+    }
+
+    $wsh = New-Object -ComObject WScript.Shell
+    $shortcut = $wsh.CreateShortcut($ShortcutPath)
+    $shortcut.TargetPath = $TargetPath
+    $shortcut.WorkingDirectory = $WorkingDirectory
+    if ($IconLocation) {
+        $shortcut.IconLocation = $IconLocation
+    }
+    $shortcut.Save()
+}
+
+$scriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
+if (-not $SourcePath) {
+    $SourcePath = Resolve-Path (Join-Path $scriptDirectory "..\..")
+}
+$resolvedSourcePath = (Resolve-Path $SourcePath).Path
+
+$installRoot = Join-Path $env:LOCALAPPDATA "odRepoMon"
+$venvPath = Join-Path $installRoot ".venv"
+$venvPython = Join-Path $venvPath "Scripts\python.exe"
+$venvPythonw = Join-Path $venvPath "Scripts\pythonw.exe"
+$launcherPath = Join-Path $installRoot "Launch-odRepoMon-Agent.cmd"
+
+if (-not $ConfigPath) {
+    $ConfigPath = Join-Path $installRoot "mirror-config.yaml"
+}
+
+if (-not (Test-Path -LiteralPath $installRoot)) {
+    New-Item -ItemType Directory -Path $installRoot -Force | Out-Null
+}
+
+$pythonCommand = Resolve-PythonCommand
+if (-not (Test-Path -LiteralPath $venvPython)) {
+    Write-Host "Creating user virtual environment at $venvPath"
+    Invoke-Python -Command $pythonCommand -Arguments @("-m", "venv", $venvPath)
+}
+
+Write-Host "Installing odRepoMon into user environment"
+& $venvPython -m pip install --upgrade pip
+& $venvPython -m pip install --upgrade $resolvedSourcePath
+
+$sourceConfig = Join-Path $resolvedSourcePath "mirror-config.yaml"
+if ((-not (Test-Path -LiteralPath $ConfigPath)) -and (Test-Path -LiteralPath $sourceConfig)) {
+    Copy-Item -Path $sourceConfig -Destination $ConfigPath -Force
+}
+
+$launcherContent = @(
+    "@echo off",
+    "setlocal",
+    "set ODR_CONFIG=$ConfigPath",
+    "if not exist \"%ODR_CONFIG%\" (")",
+    "  echo Config file not found: %ODR_CONFIG%",
+    "  exit /b 1",
+    ")",
+    "start \"odRepoMon Agent\" \"$venvPythonw\" -m odrepomon.cli agent --config \"%ODR_CONFIG%\""
+) -join "`r`n"
+$launcherContent | Set-Content -Path $launcherPath -Encoding ASCII
+
+$programsDir = [Environment]::GetFolderPath("Programs")
+$startupDir = [Environment]::GetFolderPath("Startup")
+$startMenuShortcut = Join-Path $programsDir "odRepoMon Agent.lnk"
+$startupShortcut = Join-Path $startupDir "odRepoMon Agent.lnk"
+
+New-ShortcutFile -ShortcutPath $startMenuShortcut -TargetPath $launcherPath -WorkingDirectory $installRoot -IconLocation "$env:SystemRoot\System32\shell32.dll,44"
+
+if ($EnableStartup) {
+    New-ShortcutFile -ShortcutPath $startupShortcut -TargetPath $launcherPath -WorkingDirectory $installRoot -IconLocation "$env:SystemRoot\System32\shell32.dll,44"
+} else {
+    if (Test-Path -LiteralPath $startupShortcut) {
+        Remove-Item -LiteralPath $startupShortcut -Force
+    }
+}
+
+Write-Host ""
+Write-Host "odRepoMon user install complete."
+Write-Host "Launcher: $launcherPath"
+Write-Host "Start Menu: $startMenuShortcut"
+Write-Host "Config: $ConfigPath"
+if ($EnableStartup) {
+    Write-Host "Startup launch: enabled"
+} else {
+    Write-Host "Startup launch: disabled"
+}

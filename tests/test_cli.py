@@ -167,3 +167,26 @@ jobs:
     assert "job=j" in output
     assert "sources=1" in output
     assert "createTargetDirsIfMissing=true" in output
+
+
+def test_agent_subcommand_delegates_to_tray_agent(monkeypatch, tmp_path: Path) -> None:
+    captured: dict[str, list[str]] = {}
+
+    class _FakeTrayAgent:
+        @staticmethod
+        def main(argv: list[str]) -> int:
+            captured["argv"] = argv
+            return 0
+
+    def _fake_import_module(name: str):
+        assert name == "odrepomon.tray_agent"
+        return _FakeTrayAgent
+
+    monkeypatch.setattr("odrepomon.cli.importlib.import_module", _fake_import_module)
+
+    cfg = tmp_path / "mirror-config.yaml"
+    state = tmp_path / "state.json"
+    exit_code = main(["agent", "--config", str(cfg), "--state-file", str(state)])
+
+    assert exit_code == EXIT_SUCCESS
+    assert captured["argv"] == ["--config", str(cfg), "--state-file", str(state)]

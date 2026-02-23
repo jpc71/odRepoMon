@@ -21,6 +21,13 @@ From the project root:
 pip install -e .
 ```
 
+This installs two commands:
+
+- `mirror` (CLI)
+- `odrepomon-agent` (Windows task tray agent)
+
+No admin permissions are required. The agent runs in user mode, stores state/log files under your user profile (`~/.odrepomon`), and uses an internal timer for scheduling.
+
 ## Quick Start
 
 ```powershell
@@ -72,6 +79,32 @@ Source-level keys:
 - `mirror run --config mirror-config.yaml --dry-run`
 - `mirror run --config mirror-config.yaml --job work-repos`
 - `mirror run --config mirror-config.yaml --job work-repos --source work --dry-run`
+- `mirror agent --config mirror-config.yaml`
+
+## Task Tray Agent (Windows)
+
+Start it from your normal user shell:
+
+```powershell
+odrepomon-agent --config mirror-config.yaml
+```
+
+Features available from the tray icon menu:
+
+- Run now (on-demand)
+- Enable/disable scheduled run (every N minutes)
+- Job/source filter controls
+- Dry-run toggle
+- Open full interface window
+- Open config and log files
+- Toggle launch-at-login for current user (no admin)
+
+The interface window (opened from tray) includes:
+
+- editable configuration path
+- schedule settings and run options
+- job/source filters
+- live run log output
 
 `--source` selects one configured source within each selected job. You can pass either the full source path or a unique folder name (for example, `work`).
 

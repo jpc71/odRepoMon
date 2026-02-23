@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib
 from pathlib import Path
 import sys
 
@@ -39,6 +40,10 @@ def _build_parser() -> argparse.ArgumentParser:
         "--source",
         help="List only one configured source (full path or unique folder name)",
     )
+
+    agent_parser = subparsers.add_parser("agent", help="Start the task tray agent")
+    agent_parser.add_argument("--config", type=Path, default=Path.cwd() / "mirror-config.yaml")
+    agent_parser.add_argument("--state-file", type=Path, default=None)
 
     return parser
 
@@ -159,6 +164,29 @@ def cmd_run(
     return EXIT_PARTIAL_FAILURES if partial_failures else EXIT_SUCCESS
 
 
+def cmd_agent(config_path: Path, state_file: Path | None) -> int:
+    try:
+        tray_agent = importlib.import_module("odrepomon.tray_agent")
+    except ModuleNotFoundError as exc:
+        missing = exc.name or "unknown"
+        print(
+            (
+                f"Failed to load tray agent dependency: {missing}. "
+                "Reinstall dependencies in your active environment with: pip install -e ."
+            ),
+            file=sys.stderr,
+        )
+        return EXIT_RUNTIME_OR_CONFIG_ERROR
+    except Exception as exc:
+        print(f"Failed to load tray agent: {exc}", file=sys.stderr)
+        return EXIT_RUNTIME_OR_CONFIG_ERROR
+
+    argv = ["--config", str(config_path)]
+    if state_file is not None:
+        argv.extend(["--state-file", str(state_file)])
+    return int(tray_agent.main(argv))
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
@@ -178,6 +206,11 @@ def main(argv: list[str] | None = None) -> int:
             source_filter=args.source,
             dry_run=args.dry_run,
             continue_on_error=args.continue_on_error,
+        )
+    if args.command == "agent":
+        return cmd_agent(
+            config_path=args.config,
+            state_file=args.state_file,
         )
 
     parser.print_help()

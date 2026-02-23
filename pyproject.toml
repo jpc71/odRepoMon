@@ -10,7 +10,9 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
   "pathspec>=0.12.1",
-  "PyYAML>=6.0.1"
+  "PyYAML>=6.0.1",
+  "pystray>=0.19.5",
+  "Pillow>=10.0.0"
 ]
 
 [project.optional-dependencies]
@@ -20,6 +22,7 @@ dev = [
 
 [project.scripts]
 mirror = "odrepomon.cli:main"
+odrepomon-agent = "odrepomon.tray_agent:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

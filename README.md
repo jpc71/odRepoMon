@@ -1,6 +1,10 @@
-# odRepoMon
+# odRepoMon - Git Repository Monitor for OneDrive
 
-Gitignore-aware one-way mirror utility (source -> destination), designed for backing up active repositories into OneDrive-friendly locations.
+**odRepoMon** is a gitignore-aware backup utility that mirrors your active Git repositories to cloud storage locations like OneDrive. It intelligently copies only the files that matter—respecting `.gitignore` rules to exclude build artifacts, dependencies, caches, and other generated content that shouldn't be backed up.
+
+The tool runs as a background Windows tray agent that can automatically sync your repositories on a schedule or on-demand. Configure multiple source directories (your working repos) with their backup destinations, and odRepoMon handles the rest. Each sync operation honors the gitignore filtering rules from your repositories, ensuring your cloud storage stays lean and focused on source code rather than bloated with `node_modules`, `.venv`, build outputs, or IDE metadata.
+
+Perfect for developers who want automated, selective backups of active projects without manually managing what gets synced to OneDrive, Google Drive, or other cloud folders. Run it in dry-run mode first to preview what would be copied, then let it run automatically in the background.
 
 ## Features
 
@@ -27,6 +31,39 @@ This installs two commands:
 - `odrepomon-agent` (Windows task tray agent)
 
 No admin permissions are required. The agent runs in user mode, stores state/log files under your user profile (`~/.odrepomon`), and uses an internal timer for scheduling.
+
+## Windows Easy Install (non-dev users)
+
+Use the bundled installer (no admin required):
+
+1. Double-click [scripts/windows/install-user.cmd](scripts/windows/install-user.cmd)
+2. It installs into `%LOCALAPPDATA%/odRepoMon` (user-space only)
+3. It creates a Start Menu shortcut: `odRepoMon Agent`
+
+Optional logon task (starts agent automatically when you login):
+
+```powershell
+scripts\windows\install-user.cmd -EnableStartup
+```
+
+This creates a user-level scheduled task (no admin required) that runs at logon.
+
+Reinstall/refresh existing user install without prompt:
+
+```powershell
+scripts\windows\install-user.cmd -Force
+```
+
+After install, start the tray agent by either:
+
+- Start Menu shortcut `odRepoMon Agent`
+- [scripts/windows/launch-agent.cmd](scripts/windows/launch-agent.cmd)
+
+Uninstall (no admin required):
+
+- Double-click [scripts/windows/uninstall-user.cmd](scripts/windows/uninstall-user.cmd)
+- Or run `scripts\windows\uninstall-user.cmd`
+- Silent uninstall (no prompt): `scripts\windows\uninstall-user.cmd -Force`
 
 ## Quick Start
 

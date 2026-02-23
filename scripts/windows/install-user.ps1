@@ -102,30 +102,53 @@ if ((-not (Test-Path -LiteralPath $ConfigPath)) -and (Test-Path -LiteralPath $so
     Copy-Item -Path $sourceConfig -Destination $ConfigPath -Force
 }
 
-$launcherContent = @(
-    "@echo off",
-    "setlocal",
-    "set ODR_CONFIG=$ConfigPath",
-    "if not exist \"%ODR_CONFIG%\" (")",
-    "  echo Config file not found: %ODR_CONFIG%",
-    "  exit /b 1",
-    ")",
-    "start \"odRepoMon Agent\" \"$venvPythonw\" -m odrepomon.cli agent --config \"%ODR_CONFIG%\""
-) -join "`r`n"
+$launcherContent = @"
+@echo off
+setlocal
+set ODR_CONFIG=$ConfigPath
+if not exist "%ODR_CONFIG%" (
+  echo Config file not found: %ODR_CONFIG%
+  pause
+  exit /b 1
+)
+echo Starting odRepoMon Agent...
+echo Look for the tray icon in your notification area (bottom-right taskbar)
+timeout /t 2 /nobreak >nul
+start "odRepoMon Agent" "$venvPythonw" -m odrepomon.cli agent --config "%ODR_CONFIG%"
+"@
 $launcherContent | Set-Content -Path $launcherPath -Encoding ASCII
 
 $programsDir = [Environment]::GetFolderPath("Programs")
-$startupDir = [Environment]::GetFolderPath("Startup")
 $startMenuShortcut = Join-Path $programsDir "odRepoMon Agent.lnk"
-$startupShortcut = Join-Path $startupDir "odRepoMon Agent.lnk"
 
 New-ShortcutFile -ShortcutPath $startMenuShortcut -TargetPath $launcherPath -WorkingDirectory $installRoot -IconLocation "$env:SystemRoot\System32\shell32.dll,44"
 
+$taskName = "odRepoMon Agent - Startup"
+$taskExists = $false
+try {
+    $null = schtasks /query /tn "$taskName" 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        $taskExists = $true
+    }
+} catch {
+    $taskExists = $false
+}
+
 if ($EnableStartup) {
-    New-ShortcutFile -ShortcutPath $startupShortcut -TargetPath $launcherPath -WorkingDirectory $installRoot -IconLocation "$env:SystemRoot\System32\shell32.dll,44"
+    if ($taskExists) {
+        $null = schtasks /delete /tn "$taskName" /f 2>&1
+    }
+    
+    $null = schtasks /create /tn "$taskName" /tr "`"$launcherPath`"" /sc onlogon /rl limited /f 2>&1
+    
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "Created logon task: $taskName"
+    } else {
+        Write-Warning "Failed to create logon task (exit code: $LASTEXITCODE)"
+    }
 } else {
-    if (Test-Path -LiteralPath $startupShortcut) {
-        Remove-Item -LiteralPath $startupShortcut -Force
+    if ($taskExists) {
+        $null = schtasks /delete /tn "$taskName" /f 2>&1
     }
 }
 
@@ -135,7 +158,7 @@ Write-Host "Launcher: $launcherPath"
 Write-Host "Start Menu: $startMenuShortcut"
 Write-Host "Config: $ConfigPath"
 if ($EnableStartup) {
-    Write-Host "Startup launch: enabled"
+    Write-Host "Logon task: enabled"
 } else {
-    Write-Host "Startup launch: disabled"
+    Write-Host "Logon task: disabled"
 }

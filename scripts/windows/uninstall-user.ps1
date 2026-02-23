@@ -15,17 +15,26 @@ if (-not $Force) {
 
 $installRoot = Join-Path $env:LOCALAPPDATA "odRepoMon"
 $programsDir = [Environment]::GetFolderPath("Programs")
-$startupDir = [Environment]::GetFolderPath("Startup")
 
 $startMenuShortcut = Join-Path $programsDir "odRepoMon Agent.lnk"
-$startupShortcut = Join-Path $startupDir "odRepoMon Agent.lnk"
+$taskName = "odRepoMon Agent - Startup"
 
 if (Test-Path -LiteralPath $startMenuShortcut) {
     Remove-Item -LiteralPath $startMenuShortcut -Force
 }
 
-if (Test-Path -LiteralPath $startupShortcut) {
-    Remove-Item -LiteralPath $startupShortcut -Force
+$taskExists = $false
+try {
+    $null = schtasks /query /tn "$taskName" 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        $taskExists = $true
+    }
+} catch {
+    $taskExists = $false
+}
+
+if ($taskExists) {
+    $null = schtasks /delete /tn "$taskName" /f 2>&1
 }
 
 if (Test-Path -LiteralPath $installRoot) {
@@ -33,4 +42,4 @@ if (Test-Path -LiteralPath $installRoot) {
 }
 
 Write-Host "odRepoMon user uninstall complete."
-Write-Host "Removed user shortcuts and installation at: $installRoot"
+Write-Host "Removed shortcuts, scheduled task, and installation at: $installRoot"

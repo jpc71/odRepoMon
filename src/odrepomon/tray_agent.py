@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 import threading
 import tkinter as tk
-from tkinter import filedialog, messagebox, simpledialog, ttk
+from tkinter import filedialog, messagebox, ttk
 import traceback
 
 from PIL import Image, ImageDraw
@@ -60,6 +60,7 @@ class TrayAgent:
         self._configure_logging()
 
         self.icon = pystray.Icon("odrepomon-agent", self._create_icon(), "odRepoMon Agent", self._build_menu())
+        self.icon.HAS_NOTIFICATION = True  # Enable Windows notifications
         self.scheduler_thread = threading.Thread(target=self._scheduler_loop, daemon=True)
 
         self.ui_root: tk.Tk | None = None
@@ -92,38 +93,19 @@ class TrayAgent:
     def _build_menu(self) -> pystray.Menu:
         return pystray.Menu(
             pystray.MenuItem("Run now", self._menu_run_now),
+            pystray.MenuItem("Open settings", self._menu_open_ui),
+            pystray.Menu.SEPARATOR,
             pystray.MenuItem(
                 lambda _: f"Scheduled run: {'On' if self.settings.schedule_enabled else 'Off'}",
                 self._menu_toggle_schedule,
             ),
             pystray.MenuItem(
-                lambda _: f"Schedule interval: {self.settings.schedule_minutes} min",
-                self._menu_set_schedule_minutes,
-            ),
-            pystray.MenuItem(
-                lambda _: (
-                    "Job filter: (all)"
-                    if not self.settings.job_filter
-                    else f"Job filter: {self.settings.job_filter}"
-                ),
-                self._menu_set_job_filter,
-            ),
-            pystray.MenuItem(
-                lambda _: (
-                    "Source filter: (all)"
-                    if not self.settings.source_filter
-                    else f"Source filter: {self.settings.source_filter}"
-                ),
-                self._menu_set_source_filter,
-            ),
-            pystray.MenuItem(
                 lambda _: f"Dry run: {'On' if self.settings.dry_run else 'Off'}",
                 self._menu_toggle_dry_run,
             ),
-            pystray.MenuItem("Open interface", self._menu_open_ui),
             pystray.Menu.SEPARATOR,
-            pystray.MenuItem("Open config", self._menu_open_config),
-            pystray.MenuItem("Open log", self._menu_open_log),
+            pystray.MenuItem("Open config file", self._menu_open_config),
+            pystray.MenuItem("Open log file", self._menu_open_log),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem(
                 lambda _: (
@@ -141,7 +123,19 @@ class TrayAgent:
         self.logger.info("Agent starting (non-admin user mode)")
         self._recalculate_next_run()
         self.scheduler_thread.start()
-        self.icon.run()
+        
+        def _on_ready(icon):
+            icon.visible = True
+            self.logger.info("Tray icon ready and visible")
+            self._notify("odRepoMon Agent started. Right-click the tray icon for options.")
+        
+        try:
+            self.logger.info("Starting pystray icon loop")
+            self.icon.run(setup=_on_ready)
+            self.logger.info("pystray icon loop exited")
+        except Exception as exc:
+            self.logger.error("Tray icon failed: %s", exc, exc_info=True)
+            raise
 
     def stop(self) -> None:
         self.logger.info("Agent stopping")
@@ -250,49 +244,6 @@ class TrayAgent:
         self._save_settings()
         self._wake_scheduler_event.set()
         self.logger.info("Scheduled run %s", "enabled" if self.settings.schedule_enabled else "disabled")
-
-    def _menu_set_schedule_minutes(self, icon: pystray.Icon, item: pystray.MenuItem) -> None:
-        value = simpledialog.askinteger(
-            "Schedule interval",
-            "Run every N minutes (>=1)",
-            minvalue=1,
-            initialvalue=self.settings.schedule_minutes,
-        )
-        if value is None:
-            return
-        with self._lock:
-            self.settings.schedule_minutes = value
-        self._save_settings()
-        self._wake_scheduler_event.set()
-        self.logger.info("Schedule interval updated: %s minute(s)", value)
-
-    def _menu_set_job_filter(self, icon: pystray.Icon, item: pystray.MenuItem) -> None:
-        current = self.settings.job_filter or ""
-        value = simpledialog.askstring(
-            "Job filter",
-            "Job name filter (blank = all jobs)",
-            initialvalue=current,
-        )
-        if value is None:
-            return
-        with self._lock:
-            self.settings.job_filter = value.strip() or None
-        self._save_settings()
-        self.logger.info("Job filter updated: %s", self.settings.job_filter or "(all)")
-
-    def _menu_set_source_filter(self, icon: pystray.Icon, item: pystray.MenuItem) -> None:
-        current = self.settings.source_filter or ""
-        value = simpledialog.askstring(
-            "Source filter",
-            "Source filter (folder name or full source path, blank = all)",
-            initialvalue=current,
-        )
-        if value is None:
-            return
-        with self._lock:
-            self.settings.source_filter = value.strip() or None
-        self._save_settings()
-        self.logger.info("Source filter updated: %s", self.settings.source_filter or "(all)")
 
     def _menu_toggle_dry_run(self, icon: pystray.Icon, item: pystray.MenuItem) -> None:
         with self._lock:
@@ -486,6 +437,23 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parse_args(argv)
-    agent = TrayAgent(config_path=args.config, state_file=args.state_file)
-    agent.run()
-    return 0
+    try:
+        agent = TrayAgent(config_path=args.config, state_file=args.state_file)
+        agent.run()
+        return 0
+    except Exception as exc:
+        import sys
+        import traceback
+        print(f"Fatal error starting tray agent: {exc}", file=sys.stderr)
+        traceback.print_exc()
+        
+        # Also try to log to file
+        try:
+            from odrepomon.agent_settings import default_log_file
+            log_path = default_log_file()
+            with open(log_path, 'a', encoding='utf-8') as f:
+                f.write(f"\n\nFATAL ERROR:\n{traceback.format_exc()}\n")
+        except:
+            pass
+        
+        return 1

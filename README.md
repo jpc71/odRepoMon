@@ -36,11 +36,13 @@ Use the bundled installer (no admin required):
 2. It installs into `%LOCALAPPDATA%/odRepoMon` (user-space only)
 3. It creates a Start Menu shortcut: `odRepoMon Agent`
 
-Optional startup-on-login install:
+Optional logon task (starts agent automatically when you login):
 
 ```powershell
 scripts\windows\install-user.cmd -EnableStartup
 ```
+
+This creates a user-level scheduled task (no admin required) that runs at logon.
 
 Reinstall/refresh existing user install without prompt:
 

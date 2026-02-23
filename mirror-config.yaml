@@ -1,0 +1,36 @@
+jobs:
+  - name: work-repos
+    fallbackTarget: C:/Users/jerem/OneDrive/odRepoMir/work
+    createTargetDirsIfMissing: true
+    deleteExtraneous: false
+    includeGitInfoExclude: true
+    includeGlobalGitIgnore: true
+    followSymlinks: false
+    compareBy: mtime+size
+    additionalExcludes:
+      - "*.log"
+      - "tmp/**"
+      - ".venv/"
+      - ".git/"
+
+    sources:
+      - source: C:/Users/jerem/Repos/work
+        target: C:/Users/jerem/OneDrive/odRepoMir/work
+
+  - name: personal-repos
+    fallbackTarget: C:/Users/jerem/OneDrive/odRepoMir/pers
+    createTargetDirsIfMissing: true
+    deleteExtraneous: false
+    includeGitInfoExclude: true
+    includeGlobalGitIgnore: true
+    followSymlinks: false
+    compareBy: mtime+size
+    additionalExcludes:
+      - "*.log"
+      - "tmp/**"
+      - ".venv/"
+      - ".git/"
+
+    sources:
+      - source: C:/Users/jerem/Repos/pers
+        target: C:/Users/jerem/OneDrive/odRepoMir/pers

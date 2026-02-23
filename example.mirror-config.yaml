@@ -1,0 +1,27 @@
+jobs:
+  - name: work-repos
+    fallbackTarget: C:/Users/jerem/OneDrive/Backups/Repos
+    createTargetDirsIfMissing: true
+    deleteExtraneous: false
+    includeGitInfoExclude: true
+    includeGlobalGitIgnore: true
+    followSymlinks: false
+    compareBy: mtime+size
+    additionalExcludes:
+      - "*.log"
+      - "tmp/**"
+      - ".venv/"
+      - ".git/"
+
+    sources:
+      - source: C:/Dev/Projects/repo-one
+        target: C:/Users/jerem/OneDrive/Backups/Special/repo-one
+        additionalExcludes:
+          - "coverage/**"
+
+      - source: C:/Dev/Projects/repo-two
+
+      - source: C:/Dev/Projects/repo-three
+        target: C:/Users/jerem/OneDrive/Backups/Team/repo-three
+
+

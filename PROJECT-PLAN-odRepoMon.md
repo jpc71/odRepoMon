@@ -87,7 +87,7 @@ Example `mirror-config.yaml`:
 jobs:
   - name: docs-backup
     source: C:/Dev/Projects/OneDriveIgnore
-    destination: C:/Users/jerem/OneDrive/Backups/OneDriveIgnore
+    destination: C:/Users/USERNAME/OneDrive/Backups/OneDriveIgnore
     deleteExtraneous: false
     includeGitInfoExclude: true
     includeGlobalGitIgnore: true

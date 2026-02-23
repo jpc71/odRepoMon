@@ -1,6 +1,6 @@
 jobs:
   - name: work-repos
-    fallbackTarget: C:/Users/jerem/OneDrive/odRepoMir/work
+    fallbackTarget: C:/Users/USERNAME/OneDrive/odRepoMir/work
     createTargetDirsIfMissing: true
     deleteExtraneous: false
     includeGitInfoExclude: true
@@ -14,11 +14,11 @@ jobs:
       - ".git/"
 
     sources:
-      - source: C:/Users/jerem/Repos/work
-        target: C:/Users/jerem/OneDrive/odRepoMir/work
+      - source: C:/Users/USERNAME/Repos/work
+        target: C:/Users/USERNAME/OneDrive/odRepoMir/work
 
   - name: personal-repos
-    fallbackTarget: C:/Users/jerem/OneDrive/odRepoMir/pers
+    fallbackTarget: C:/Users/USERNAME/OneDrive/odRepoMir/pers
     createTargetDirsIfMissing: true
     deleteExtraneous: false
     includeGitInfoExclude: true
@@ -32,5 +32,5 @@ jobs:
       - ".git/"
 
     sources:
-      - source: C:/Users/jerem/Repos/pers
-        target: C:/Users/jerem/OneDrive/odRepoMir/pers
+      - source: C:/Users/USERNAME/Repos/pers
+        target: C:/Users/USERNAME/OneDrive/odRepoMir/pers

@@ -27,14 +27,14 @@ def test_load_config_supports_multiple_sources_and_optional_targets(tmp_path: Pa
         """
 jobs:
   - name: work-repos
-    fallbackTarget: C:/Users/jerem/OneDrive/Backups/Repos
+    fallbackTarget: C:/Users/USERNAME/OneDrive/Backups/Repos
     createTargetDirsIfMissing: true
     sources:
       - source: C:/Dev/Projects/repo-one
-        target: C:/Users/jerem/OneDrive/Backups/Special/repo-one
+        target: C:/Users/USERNAME/OneDrive/Backups/Special/repo-one
       - source: C:/Dev/Projects/repo-two
-      - source: C:/Users/jerem/Repos/work
-        target: C:/Users/jerem/OneDrive/odRepoMir/work
+      - source: C:/Users/USERNAME/Repos/work
+        target: C:/Users/USERNAME/OneDrive/odRepoMir/work
 """.strip(),
         encoding="utf-8",
     )
@@ -46,6 +46,6 @@ jobs:
     assert job.name == "work-repos"
     assert len(job.sources) == 3
     assert job.create_target_dirs_if_missing is True
-    assert job.sources[0].target == Path("C:/Users/jerem/OneDrive/Backups/Special/repo-one")
+    assert job.sources[0].target == Path("C:/Users/USERNAME/OneDrive/Backups/Special/repo-one")
     assert job.sources[1].target is None
-    assert job.sources[2].source == Path("C:/Users/jerem/Repos/work")
+    assert job.sources[2].source == Path("C:/Users/USERNAME/Repos/work")

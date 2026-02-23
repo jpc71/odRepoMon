@@ -1,10 +1,12 @@
 # odRepoMon - Git Repository Monitor for OneDrive
 
-**odRepoMon** is a gitignore-aware backup utility that mirrors your active Git repositories to cloud storage locations like OneDrive. It intelligently copies only the files that matter—respecting `.gitignore` rules to exclude build artifacts, dependencies, caches, and other generated content that shouldn't be backed up.
+**odRepoMon** is a gitignore-aware backup utility that mirrors your active Git repositories to cloud storage locations like OneDrive. It intelligently copies only the files that matter—respecting `.gitignore` rules to exclude build artifacts, dependencies, caches, and other generated content that should not be backed up.
 
-The tool runs as a background Windows tray agent that can automatically sync your repositories on a schedule or on-demand. Configure multiple source directories (your working repos) with their backup destinations, and odRepoMon handles the rest. Each sync operation honors the gitignore filtering rules from your repositories, ensuring your cloud storage stays lean and focused on source code rather than bloated with `node_modules`, `.venv`, build outputs, or IDE metadata.
+The project is designed to be easy to run day-to-day: install it in user space (no admin required), launch from the Start Menu, and manage it from a Windows tray icon. From that tray menu, you can run a sync on demand, open settings, toggle scheduled sync behavior, and jump directly to config or log files without needing to remember command-line flags.
 
-Perfect for developers who want automated, selective backups of active projects without manually managing what gets synced to OneDrive, Google Drive, or other cloud folders. Run it in dry-run mode first to preview what would be copied, then let it run automatically in the background.
+When you need more control, the built-in settings window provides a straightforward interface for schedule options, filters, dry-run mode, and live log visibility. Configure multiple source directories and destinations once, then let odRepoMon run quietly in the background while keeping your cloud backup lean and focused on source code rather than folders like `node_modules`, `.venv`, build outputs, or IDE metadata.
+
+It works well for developers who want reliable, selective backups with minimal maintenance: preview changes with dry-run, click Run now when needed, or leave scheduled sync enabled and let it operate automatically.
 
 ## License
 
@@ -125,28 +127,32 @@ Source-level keys:
 
 ## Task Tray Agent (Windows)
 
+For everyday use, the tray agent is the easiest way to run odRepoMon. Start it once, then manage syncing from the system tray without keeping a terminal open.
+
 Start it from your normal user shell:
 
 ```powershell
 odrepomon-agent --config mirror-config.yaml
 ```
 
-Features available from the tray icon menu:
+Or launch it from the Start Menu shortcut created by the installer (`odRepoMon Agent`).
+
+Common tray menu actions:
 
 - Run now (on-demand)
-- Enable/disable scheduled run (every N minutes)
-- Job/source filter controls
+- Open settings
+- Toggle scheduled run
 - Dry-run toggle
-- Open full interface window
 - Open config and log files
 - Toggle launch-at-login for current user (no admin)
+- Quit
 
-The interface window (opened from tray) includes:
+The settings window (opened from tray) includes:
 
-- editable configuration path
-- schedule settings and run options
-- job/source filters
-- live run log output
+- Editable configuration path
+- Schedule interval and run options
+- Job/source filters
+- Live run log output
 
 `--source` selects one configured source within each selected job. You can pass either the full source path or a unique folder name (for example, `work`).
 

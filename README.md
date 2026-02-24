@@ -1,5 +1,7 @@
 # odRepoMon - Git Repository Monitor for OneDrive
 
+[![Packaging](https://github.com/jpc71/odRepoMon/actions/workflows/packaging.yml/badge.svg)](https://github.com/jpc71/odRepoMon/actions/workflows/packaging.yml)
+
 **odRepoMon** is a gitignore-aware backup utility that mirrors your active Git repositories to cloud storage locations like OneDrive. It intelligently copies only the files that matter—respecting `.gitignore` rules to exclude build artifacts, dependencies, caches, and other generated content that should not be backed up.
 
 The project is designed to be easy to run day-to-day: install it in user space (no admin required), launch from the Start Menu, and manage it from a Windows tray icon. From that tray menu, you can run a sync on demand, open settings, toggle scheduled sync behavior, and jump directly to config or log files without needing to remember command-line flags.

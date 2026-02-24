@@ -95,7 +95,13 @@ if (-not (Test-Path -LiteralPath $venvPython)) {
 
 Write-Host "Installing odRepoMon into user environment"
 & $venvPython -m pip install --upgrade pip
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to upgrade pip in user environment (exit code: $LASTEXITCODE)."
+}
 & $venvPython -m pip install --upgrade $resolvedSourcePath
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to install odRepoMon from source path '$resolvedSourcePath' (exit code: $LASTEXITCODE)."
+}
 
 $sourceConfig = Join-Path $resolvedSourcePath "mirror-config.yaml"
 if ((-not (Test-Path -LiteralPath $ConfigPath)) -and (Test-Path -LiteralPath $sourceConfig)) {

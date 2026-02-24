@@ -120,7 +120,7 @@ if not exist "%ODR_CONFIG%" (
 echo Starting odRepoMon Agent...
 echo Look for the tray icon in your notification area (bottom-right taskbar)
 timeout /t 2 /nobreak >nul
-start "odRepoMon Agent" "$venvPythonw" -m odrepomon.cli agent --config "%ODR_CONFIG%"
+start "odRepoMon Agent" "$venvPythonw" -m odrepomon agent --config "%ODR_CONFIG%"
 "@
 $launcherContent | Set-Content -Path $launcherPath -Encoding ASCII
 

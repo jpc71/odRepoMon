@@ -215,3 +215,7 @@ def main(argv: list[str] | None = None) -> int:
 
     parser.print_help()
     return EXIT_RUNTIME_OR_CONFIG_ERROR
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
